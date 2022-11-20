@@ -1,84 +1,184 @@
 #include <bits/stdc++.h>
-
 using namespace std;
 
-class point
+struct TreeNode
+{
+  int val;
+  TreeNode *left;
+  TreeNode *right;
+  TreeNode() : val(0), left(nullptr), right(nullptr) {}
+  TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+  TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+};
+void printvector(vector<int> v)
+{
+  for (auto u : v)
+    cout << u << " ";
+  cout << "\n";
+}
+void printTreebfs(TreeNode *root)
+{
+  queue<TreeNode *> q;
+  q.push(root);
+
+  while (!q.empty())
+  {
+    int n = q.size();
+    for (int i = 0; i < n; i++)
+    {
+      TreeNode *curr = q.front();
+      q.pop();
+      if (curr->val != INT_MAX)
+        cout << curr->val << " ";
+      if (curr->left)
+        q.push(curr->left);
+      if (curr->right)
+        q.push(curr->right);
+    }
+    cout << "\n";
+  }
+}
+TreeNode *v2t(vector<int> v)
+{
+  if (v.size() == 0)
+    return NULL;
+  int n = v.size();
+
+  queue<pair<TreeNode *, int>> q;
+  TreeNode *root = new TreeNode(v[0]);
+  q.push({root, 0});
+
+  while (!q.empty())
+  {
+    TreeNode *curr = q.front().first;
+    int i = q.front().second;
+    q.pop();
+
+    if (!curr || i >= n)
+      continue;
+
+    TreeNode *left = nullptr, *right = nullptr;
+    if (2 * i + 1 < n)
+      left = new TreeNode(v[2 * i + 1]);
+    if (2 * i + 2 < n)
+      right = new TreeNode(v[2 * i + 2]);
+    curr->left = left;
+    curr->right = right;
+
+    q.push({left, 2 * i + 1});
+    q.push({right, 2 * i + 2});
+  }
+
+  return root;
+}
+vector<int> s2v(string s)
+{
+  vector<int> req;
+  string temp = "";
+  for (auto u : s)
+  {
+    if (u == ' ' || u == '[')
+      continue;
+    else if (u == ',' || u == ']')
+    {
+      if (temp == "null")
+        req.push_back(INT_MAX);
+      else
+        req.push_back(stoi(temp));
+      temp.clear();
+    }
+    else
+      temp.push_back(u);
+  }
+  return req;
+}
+void pri(TreeNode *root)
+{
+  if (!root)
+    return;
+  cout << root->val << " ";
+  if (root->left)
+    cout << root->left->val << " ";
+  if (root->right)
+    cout << root->right->val << " ";
+  cout << endl;
+  pri(root->left);
+  pri(root->right);
+}
+class Codec
 {
 public:
-    int x, y;
-    point(int a, int b) : x(a), y(b) {}
+  string serialize(TreeNode *root)
+  {
+    if (!root)
+      return "";
+    string s = "";
+    s += serialize(root->left);
+    s += to_string(root->val);
+    s += "#";
+    s += serialize(root->right);
+    return s;
+  }
+
+  vector<int> myVector(string data)
+  {
+    vector<int> req;
+    string temp = "";
+    for (auto u : data)
+    {
+      if (u == '#')
+      {
+        req.push_back(stoi(temp));
+        temp.clear();
+      }
+      else
+        temp.push_back(u);
+    }
+    return req;
+  }
+  TreeNode *makeBst(vector<int> v, int i, int j)
+  {
+    TreeNode *root = nullptr;
+    if (i > j)
+      return root;
+    int k = (i + j) / 2;
+  }
+  TreeNode *deserialize(string data)
+  {
+    vector<int> v = myVector(data);
+    return makeBst(v, 0, v.size() - 1);
+  }
 };
 
 class Solution
 {
-    bool check(point *bl, point *tr, point *c)
-    {
-        bool x, y;
-        x = c->x <= tr->x && c->x >= bl->x;
-        y = c->y <= tr->y && c->y >= bl->y;
-        return x && y;
-    }
-
-    int area(point *a, point *b)
-    {
-        return abs((a->x - b->x) * (a->y - b->y));
-    }
-
-    int seg(point *a, point *b, int z, bool c)
-    {
-        return c ? abs((a->y - b->y) * z) : abs((a->x - b->x) * z);
-    }
-
 public:
-    int computeArea(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2)
-    {
-        int ans = 0;
-        point *p1 = new point(ax1, ay1), *p2 = new point(ax2, ay2);
-        point *p3 = new point(ax2, ay1), *p4 = new point(ax1, ay2);
-        point *q1 = new point(bx1, by2), *q2 = new point(bx2, by1);
-        point *q3 = new point(bx1, by1), *q4 = new point(bx2, by2);
-        int fans = area(p1, p2) + area(q1, q2);
+  vector<pair<TreeNode *, TreeNode *>> mm;
 
-        bool isq1, isq2, isq3, isq4, isp1, isp2;
-        isq1 = check(p1, p2, q1);
-        isq2 = check(p1, p2, q2);
-        isq3 = check(p1, p2, q3);
-        isq4 = check(p1, p1, q4);
-        isp1 = check(q3, q4, p1) && check(q3, q4, p2);
-        isp2 = check(q3, q4, p3) && check(q3, q4, p4);
+  void mahvo(TreeNode *root, TreeNode *prev)
+  {
+    if (!root)
+      return;
+    mahvo(root->left, prev);
+    if (prev && prev->val > root->val)
+      mm.push_back({prev, root});
+    prev = root;
+    mahvo(root->right, prev);
+  }
 
-        cout << check(q1, q2, p1) << check(q1, q2, p2) << check(q1, q2, p3) << check(q1, q2, p4) << endl;
-        cout << fans << endl;
-        cout << isq1 << isq2 << isq3 << isq4 << isp1 << isp2 << "\n";
-
-        if ((isq1 && isq2) || (isq3 && isq4))
-            ans = area(q1, q2);
-        else if (isq1 && isq3)
-            ans = seg(q1, q3, p3->x - q1->x, true);
-        else if (isq2 && isq4)
-            ans = seg(q2, q4, p4->x - q4->x, true);
-        else if (isq1 && isq4)
-            ans = seg(q1, q4, q1->y - p1->y, false);
-        else if (isq2 && isq3)
-            ans = seg(q2, q3, p2->y - q2->y, false);
-        else if (isq1)
-            ans = area(q1, p3);
-        else if (isq2)
-            ans = area(q2, p4);
-        else if (isq3)
-            ans = area(q3, p2);
-        else if (isq4)
-            ans = area(q4, p1);
-        else if (isp1 || isp2)
-            ans = area(p1, p2);
-        else
-            ans = 0;
-
-        return fans - ans;
-    }
+  void recoverTree(TreeNode *root)
+  {
+    TreeNode *prev = NULL;
+    mahvo(root, prev);
+    if (mm.size() > 1)
+      swap(mm[0].first->val, mm[1].second->val);
+    else
+      swap(mm[0].first->val, mm[0].second->val);
+  }
 };
 
 int main()
 {
-    cout << "Helllo World";
+
+  return 0;
 }
